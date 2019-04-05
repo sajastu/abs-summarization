@@ -10,7 +10,7 @@ from onmt.encoders.image_encoder import ImageEncoder
 
 
 str2enc = {"rnn": RNNEncoder, "brnn": RNNEncoder, "cnn": CNNEncoder,
-           "transformer": TransformerEncoder, 'stranformer' : StarTransformerEncoder, "img": ImageEncoder,
+           "transformer": TransformerEncoder, 'stransformer': StarTransformerEncoder, "img": ImageEncoder,
            "audio": AudioEncoder, "mean": MeanEncoder}
 
 __all__ = ["EncoderBase", "TransformerEncoder", "StarTransformerEncoder", "RNNEncoder", "CNNEncoder",
