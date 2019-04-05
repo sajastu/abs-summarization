@@ -78,11 +78,11 @@ class StarTransformerEncoder(EncoderBase):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
-        data = data.type(torch.cuda.FloatTensor)
-        data = Variable(data, requires_grad=True).cuda()
 
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous()
+        data = data.type(torch.cuda.FloatTensor)
+        data = Variable(data, requires_grad=True).cuda()
 
 
         words = data[:, :, 0].transpose(0, 1)
