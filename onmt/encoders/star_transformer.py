@@ -72,7 +72,7 @@ class StarTransformerEncoder(EncoderBase):
 
     def forward(self, data, lengths=None):
         """See :func:`EncoderBase.forward()`"""
-
+        import pdb;pdb.set_trace()
         def norm_func(f, x):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
