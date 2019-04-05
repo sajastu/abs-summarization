@@ -44,7 +44,7 @@ class StarTransformerEncoder(EncoderBase):
 
         super(StarTransformerEncoder, self).__init__()
         self.iters = num_layers
-        self.embedding = embeddings
+        self.embeddings = embeddings
         self.norm = nn.ModuleList([nn.LayerNorm(d_model, eps=1e-6) for _ in range(self.iters)])
         self.ring_att = nn.ModuleList(
             [MSA1(d_model, nhead=heads, head_dim=d_ff, dropout=dropout)
