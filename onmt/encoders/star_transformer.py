@@ -100,7 +100,7 @@ class StarTransformerEncoder(EncoderBase):
 
         nodes = embs  # nodes variable denotes the hidden states of source input
         relay = embs.mean(2, keepdim=True)
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         ex_mask = smask[:, None, :, None].expand(B, H, L, 1)
 
         r_embs = embs.view(B, H, 1, L)
