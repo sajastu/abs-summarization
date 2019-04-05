@@ -4,6 +4,8 @@ Implementation of "Attention is All You Need"
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
+
 from onmt.encoders.encoder import EncoderBase
 
 
@@ -76,6 +78,9 @@ class StarTransformerEncoder(EncoderBase):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
+        data = data.type(torch.cuda.FloatTensor)
+        data = Variable(data, requires_grad=True).cuda()
+
         B, L, H = data.size()
         # mask = (mask == 0) # flip the mask for masked_fill_
         # smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
@@ -89,7 +94,7 @@ class StarTransformerEncoder(EncoderBase):
         if self.pos_emb:
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             embs = embs + P
 
         nodes = embs  # nodes variable denotes the hidden states of source input
