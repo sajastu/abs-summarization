@@ -1,6 +1,7 @@
 """Module defining encoders."""
 from onmt.encoders.encoder import EncoderBase
 from onmt.encoders.transformer import TransformerEncoder
+from onmt.encoders.star_transformer import StarTransformerEncoder
 from onmt.encoders.rnn_encoder import RNNEncoder
 from onmt.encoders.cnn_encoder import CNNEncoder
 from onmt.encoders.mean_encoder import MeanEncoder
@@ -9,8 +10,8 @@ from onmt.encoders.image_encoder import ImageEncoder
 
 
 str2enc = {"rnn": RNNEncoder, "brnn": RNNEncoder, "cnn": CNNEncoder,
-           "transformer": TransformerEncoder, "img": ImageEncoder,
+           "transformer": TransformerEncoder, 'stranformer' : StarTransformerEncoder, "img": ImageEncoder,
            "audio": AudioEncoder, "mean": MeanEncoder}
 
-__all__ = ["EncoderBase", "TransformerEncoder", "RNNEncoder", "CNNEncoder",
+__all__ = ["EncoderBase", "TransformerEncoder", "StarTransformerEncoder", "RNNEncoder", "CNNEncoder",
            "MeanEncoder", "str2enc"]
