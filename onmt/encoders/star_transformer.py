@@ -86,7 +86,7 @@ class StarTransformerEncoder(EncoderBase):
         padding_idx = self.embeddings.word_padding_idx
         smask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
         #
-        # B, L, H = data.size()
+        B, L, H = data.size()
         # mask = (mask == 0) # flip the mask for masked_fill_
         # smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
