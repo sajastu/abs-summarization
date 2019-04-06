@@ -128,7 +128,7 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1).contiguous()
 
         # return self.embedding(data), nodes, relay.view(B, H)
-        return self.embedding(data), nodes, lengths
+        return self.embeddings(data), nodes, lengths
 
 
 class MSA1(nn.Module):
