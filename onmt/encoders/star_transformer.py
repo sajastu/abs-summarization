@@ -111,9 +111,9 @@ class StarTransformerEncoder(EncoderBase):
         if self.pos_emb:
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
-            # import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             embs = embs + P
-
+        import pdb; pdb.set_trace()
         nodes = embs  # nodes variable denotes the hidden states of source input
         relay = embs.mean(2, keepdim=True)
 
@@ -122,7 +122,6 @@ class StarTransformerEncoder(EncoderBase):
         r_embs = embs.view(B, H, 1, L)
         for i in range(self.iters):
             ax = torch.cat([r_embs, relay.expand(B, H, 1, L)], 2)
-            import pdb;pdb.set_trace()
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
 
