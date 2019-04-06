@@ -79,6 +79,7 @@ class StarTransformerEncoder(EncoderBase):
         """
         def norm_func(f, x):
             # B, H, L, 1
+            import pdb;pdb.set_trace()
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
 
@@ -96,7 +97,6 @@ class StarTransformerEncoder(EncoderBase):
         data2 = Variable(data2, requires_grad=True).cuda()
 
 
-        # import pdb;pdb.set_trace()
 
 
         B, L, H = data2.size()  # (len, batch, hidden)
@@ -119,6 +119,7 @@ class StarTransformerEncoder(EncoderBase):
         r_embs = embs.view(B, H, 1, L)
         for i in range(self.iters):
             ax = torch.cat([r_embs, relay.expand(B, H, 1, L)], 2)
+            import pdb;pdb.set_trace()
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
 
