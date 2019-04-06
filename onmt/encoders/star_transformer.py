@@ -89,11 +89,11 @@ class StarTransformerEncoder(EncoderBase):
         words = data[:, :, 0].transpose(0, 1)
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
-        smask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
+        mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
 
         B, L, H = data.size()  # B=84, L=1, H=1
-        # mask = (mask == 0) # flip the mask for masked_fill_
-        # smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
+        mask = (mask == 0) # flip the mask for masked_fill_
+        smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
 
         embs = data.permute(0, 2, 1)[:, :, :, None]  # B H L 1
