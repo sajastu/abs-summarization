@@ -90,20 +90,20 @@ class StarTransformerEncoder(EncoderBase):
         padding_idx = self.embeddings.word_padding_idx
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, len]
 
-        data = data.permute(1, 0, 2)
-        data = data.type(torch.cuda.FloatTensor)
-        data = Variable(data, requires_grad=True).cuda()
+        data2 = data.permute(1, 0, 2)
+        data2 = data2.type(torch.cuda.FloatTensor)
+        data2 = Variable(data2, requires_grad=True).cuda()
 
 
         import pdb;pdb.set_trace()
 
 
-        B, L, H = data.size()  # (len, batch, hidden)
+        B, L, H = data2.size()  # (len, batch, hidden)
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
 
-        embs = data.permute(0, 2, 1)[:, :, :, None]  # B H L 1
+        embs = data2.permute(0, 2, 1)[:, :, :, None]  # B H L 1
         if self.pos_emb:
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
