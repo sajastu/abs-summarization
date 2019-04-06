@@ -79,8 +79,11 @@ class StarTransformerEncoder(EncoderBase):
         """
         def norm_func(f, x):
             # B, H, L, 1
-            import pdb;pdb.set_trace()
-            return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            # import pdb;pdb.set_trace()
+            input = x.permute(0, 2, 3, 1)
+            normed = f(input)
+            out = normed.permute(0, 3, 1, 2)
+            return out
 
 
         emb = self.embeddings(data)
