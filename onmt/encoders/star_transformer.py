@@ -97,12 +97,12 @@ class StarTransformerEncoder(EncoderBase):
 
         data2 = data.permute(1, 0, 2)
         data2 = data2.type(torch.cuda.FloatTensor)
-        data2 = Variable(data2, requires_grad=True).cuda()
+        data2 = Variable(data2, requires_grad=True)
 
 
 
 
-        B, L, H = data2.size()  # (len, batch, hidden)
+        B, L, H = data2.size()  # (batch, len, hidden)
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
