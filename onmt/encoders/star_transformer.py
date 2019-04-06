@@ -74,26 +74,33 @@ class StarTransformerEncoder(EncoderBase):
             opt.max_relative_positions)
 
     def forward(self, data, lengths=None):
-        """See :func:`EncoderBase.forward()`"""
+        """See :func:`EncoderBase.forward()`
+            data: LongTensor: (len, batch, features)
+        """
         def norm_func(f, x):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
 
         emb = self.embeddings(data)
-        data = emb.transpose(0, 1).contiguous()
+        data = emb.transpose(0, 1).contiguous() # data: (len, batch, hidden)
+
+        words = data[:, :, 0].transpose(0, 1) # words (batch, len)
+        w_batch, w_len = words.size()
+        padding_idx = self.embeddings.word_padding_idx
+        mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, len]
+
+        data = data.permute(1, 0, 2)
         data = data.type(torch.cuda.FloatTensor)
         data = Variable(data, requires_grad=True).cuda()
 
 
-        words = data[:, :, 0].transpose(0, 1)
-        w_batch, w_len = words.size()
-        padding_idx = self.embeddings.word_padding_idx
-        smask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
+        import pdb;pdb.set_trace()
 
-        B, L, H = data.size()  # B=84, L=1, H=1
-        # mask = (mask == 0) # flip the mask for masked_fill_
-        # smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
+
+        B, L, H = data.size()  # (len, batch, hidden)
+        mask = (mask == 0) # flip the mask for masked_fill_
+        smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
 
         embs = data.permute(0, 2, 1)[:, :, :, None]  # B H L 1
@@ -105,7 +112,6 @@ class StarTransformerEncoder(EncoderBase):
 
         nodes = embs  # nodes variable denotes the hidden states of source input
         relay = embs.mean(2, keepdim=True)
-        import pdb;pdb.set_trace()
 
         ex_mask = smask[:, None, :, None].expand(B, H, L, 1)
 
