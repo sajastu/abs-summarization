@@ -85,6 +85,7 @@ class StarTransformerEncoder(EncoderBase):
             out = normed.permute(0, 3, 1, 2)
             return out
 
+        import pdb; pdb.set_trace()
 
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous() # data: (len, batch, hidden)
@@ -95,7 +96,7 @@ class StarTransformerEncoder(EncoderBase):
         # mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, length]
         mask = words.data.eq(padding_idx)  # [batch, length]
 
-        data = data.permute(1, 0, 2)
+        data = data.permute(1, 0, 2) # B L H
         # data2 = data2.type(torch.cuda.FloatTensor)
         # data2 = Variable(data2, requires_grad=True)
 
@@ -111,7 +112,6 @@ class StarTransformerEncoder(EncoderBase):
         if self.pos_emb:
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
-            import pdb; pdb.set_trace()
             embs = embs + P
         import pdb; pdb.set_trace()
         nodes = embs  # nodes variable denotes the hidden states of source input
