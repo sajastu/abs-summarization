@@ -107,7 +107,9 @@ class TransformerEncoder(EncoderBase):
             opt.max_relative_positions)
 
     def forward(self, src, lengths=None):
-        """See :func:`EncoderBase.forward()`"""
+        """See :func:`EncoderBase.forward()
+            src: (len, batch, features)
+        `"""
         self._check_args(src, lengths)
         emb = self.embeddings(src)
 
