@@ -96,7 +96,7 @@ class StarTransformerEncoder(EncoderBase):
         data2 = Variable(data2, requires_grad=True).cuda()
 
 
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
 
         B, L, H = data2.size()  # (len, batch, hidden)
