@@ -96,8 +96,8 @@ class StarTransformerEncoder(EncoderBase):
         mask = words.data.eq(padding_idx)  # [batch, length]
 
         data = data.permute(1, 0, 2) # B L H
-        # data2 = data2.type(torch.cuda.FloatTensor)
-        # data2 = Variable(data2, requires_grad=True)
+        data = data.type(torch.cuda.FloatTensor)
+        data = Variable(data, requires_grad=True).cuda()
 
 
 
