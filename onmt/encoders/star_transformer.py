@@ -2,12 +2,13 @@
 Implementation of "Attention is All You Need"
 """
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
+from torch.nn import functional as F
+import numpy as NP
 from torch.autograd import Variable
 
-from onmt.encoders.encoder import EncoderBase
 
+from onmt.encoders.encoder import EncoderBase
 
 class StarTransformerEncoder(EncoderBase):
     """The Transformer encoder from "Attention is All You Need"
@@ -89,7 +90,7 @@ class StarTransformerEncoder(EncoderBase):
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         smask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
-        #
+
         B, L, H = data.size()  # B=84, L=1, H=1
         # mask = (mask == 0) # flip the mask for masked_fill_
         # smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
