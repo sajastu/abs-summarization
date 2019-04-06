@@ -56,7 +56,7 @@ class StarTransformerEncoder(EncoderBase):
             [MSA2(d_model, nhead=heads, head_dim=d_ff, dropout=dropout)
              for _ in range(self.iters)])
 
-        if max_relative_positions !=0:
+        if max_relative_positions is not 0:
             self.pos_emb = self.pos_emb = nn.Embedding(max_relative_positions, d_model)
         else:
             self.pos_emb = None
@@ -87,17 +87,14 @@ class StarTransformerEncoder(EncoderBase):
         data = emb.transpose(0, 1).contiguous() # data: (len, batch, hidden)
 
         words = data[:, :, 0].transpose(0, 1) # words (batch, len)
-        w_batch, w_len = words.size()
+        # w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         # mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, length]
         mask = words.data.eq(padding_idx)  # [batch, length]
 
         data = data.permute(1, 0, 2) # B L H
-        data = data.type(torch.cuda.FloatTensor)
-        data = Variable(data, requires_grad=True).cuda()
-
-
-
+        # data = data.type(torch.cuda.FloatTensor)
+        # data = Variable(data, requires_grad=True).cuda()
 
         B, L, H = data.size()  # (batch, len, hidden)
         mask = (mask == 0) # flip the mask for masked_fill_
@@ -109,6 +106,7 @@ class StarTransformerEncoder(EncoderBase):
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
             embs = embs + P
+
         nodes = embs  # nodes variable denotes the hidden states of source input
         relay = embs.mean(2, keepdim=True)
 
@@ -123,7 +121,7 @@ class StarTransformerEncoder(EncoderBase):
             nodes = nodes.masked_fill_(ex_mask, 0)
 
         nodes = nodes.view(B, H, L).permute(0, 2, 1).contiguous()
-
+        import pdb;pdb.set_trace()
         # return self.embedding(data), nodes, relay.view(B, H)
         return self.embeddings(data_out), nodes, lengths
 
