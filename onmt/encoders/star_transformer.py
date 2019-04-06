@@ -89,7 +89,7 @@ class StarTransformerEncoder(EncoderBase):
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         # mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, length]
-        mask = words.data.eq(padding_idx)  # [batch, 1, length]
+        mask = words.data.eq(padding_idx)  # [batch, length]
 
         data2 = data.permute(1, 0, 2)
         data2 = data2.type(torch.cuda.FloatTensor)
