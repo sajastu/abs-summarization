@@ -47,6 +47,7 @@ class StarTransformerEncoder(EncoderBase):
 
         super(StarTransformerEncoder, self).__init__()
         self.iters = num_layers
+        # self.fc1 = nn.Linear(input_size, d_model)
         self.embeddings = embeddings
         self.norm = nn.ModuleList([nn.LayerNorm(d_model, eps=1e-6) for _ in range(self.iters)])
         self.ring_att = nn.ModuleList(
@@ -81,10 +82,10 @@ class StarTransformerEncoder(EncoderBase):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
-        data_out = data # (L, B, F)
+        d_out = data # (L, B, F)
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous() # data: (B, L, H)
-        words = data_out[:, :, 0].transpose(0, 1) # words (B, L)
+        words = d_out[:, :, 0].transpose(0, 1) # words (B, L)
 
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
@@ -121,12 +122,14 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return self.embeddings(data_out), nodes.transpose(0, 1).contiguous(), lengths
+        return self.embeddings(d_out), nodes.transpose(0, 1).contiguous(), lengths
 
 
 class MSA1(nn.Module):
     def __init__(self, nhid, nhead=10, head_dim=10, dropout=0.1):
         super(MSA1, self).__init__()
+        assert nhid % nhead == 0
+        self.head_dim = nhid // nhead
         # Multi-head Self Attention Case 1, doing self-attention for small regions
         # Due to the architecture of GPU, using hadamard production and summation are faster than dot production when unfold_size is very small
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
@@ -171,6 +174,8 @@ class MSA2(nn.Module):
     def __init__(self, nhid, nhead=10, head_dim=10, dropout=0.1):
         # Multi-head Self Attention Case 2, a broadcastable query for a sequence key and value
         super(MSA2, self).__init__()
+        assert nhid % nhead == 0
+        self.head_dim = nhid // nhead
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WK = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WV = nn.Conv2d(nhid, nhead * head_dim, 1)
