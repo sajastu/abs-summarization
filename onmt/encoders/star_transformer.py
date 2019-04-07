@@ -82,7 +82,6 @@ class StarTransformerEncoder(EncoderBase):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
         self._check_args(data, lengths)
-        import pdb;pdb.set_trace()
         # d_out = data # (L, B, F)
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous() # data: (B, L, H)
