@@ -51,10 +51,10 @@ class StarTransformerEncoder(EncoderBase):
         self.embeddings = embeddings
         self.norm = nn.ModuleList([nn.LayerNorm(d_model, eps=1e-6) for _ in range(self.iters)])
         self.ring_att = nn.ModuleList(
-            [MSA1(d_model, nhead=heads, head_dim=d_ff, dropout=dropout)
+            [MSA1(d_model, nhead=heads, dropout=dropout)
              for _ in range(self.iters)])
         self.star_att = nn.ModuleList(
-            [MSA2(d_model, nhead=heads, head_dim=d_ff, dropout=dropout)
+            [MSA2(d_model, nhead=heads, dropout=dropout)
              for _ in range(self.iters)])
 
         if max_relative_positions != 0:
@@ -81,22 +81,20 @@ class StarTransformerEncoder(EncoderBase):
         def norm_func(f, x):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-
-        d_out = data # (L, B, F)
+        self._check_args(data, lengths)
+        import pdb;pdb.set_trace()
+        # d_out = data # (L, B, F)
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous() # data: (B, L, H)
-        words = d_out[:, :, 0].transpose(0, 1) # words (B, L)
+        # words = d_out[:, :, 0].transpose(0, 1) # words (B, L)
+        #
+        # w_batch, w_len = words.size()
+        # padding_idx = self.embeddings.word_padding_idx
+        # mask = words.data.eq(padding_idx)  # [B, L]
 
-        w_batch, w_len = words.size()
-        padding_idx = self.embeddings.word_padding_idx
-        # mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, length]
-        mask = words.data.eq(padding_idx)  # [B, L]
+        mask = seq_len_to_byte_mask(lengths)
 
-        # data = data.permute(1, 0, 2) # B L H
-        # data = data.type(torch.cuda.FloatTensor)
-        # data = Variable(data, requires_grad=True).cuda()
-
-        B, L, H = data.size()  # (length, batch, hidden)
+        B, L, H = data.size()  # (B, L, H)
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
@@ -107,7 +105,7 @@ class StarTransformerEncoder(EncoderBase):
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
             embs = embs + P
 
-        nodes = embs  # nodes variable denotes the hidden states of source input
+        nodes = embs  # nodes denote the hidden states of source input
         relay = embs.mean(2, keepdim=True)
 
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
@@ -122,26 +120,26 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return self.embeddings(d_out), nodes.transpose(0, 1).contiguous(), lengths
+        return emb, nodes.transpose(0, 1).contiguous(), lengths
 
 
 class MSA1(nn.Module):
-    def __init__(self, nhid, nhead=10, head_dim=10, dropout=0.1):
+    def __init__(self, model_dim, nhead=10, dropout=0.1):
         super(MSA1, self).__init__()
-        assert nhid % nhead == 0
-        head_dim = nhid // nhead
+        assert model_dim % nhead == 0
+        head_dim = model_dim // nhead
 
         # Multi-head Self Attention Case 1, doing self-attention for small regions
         # Due to the architecture of GPU, using hadamard production and summation are faster than dot production when unfold_size is very small
-        self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
-        self.WK = nn.Conv2d(nhid, nhead * head_dim, 1)
-        self.WV = nn.Conv2d(nhid, nhead * head_dim, 1)
-        self.WO = nn.Conv2d(nhead * head_dim, nhid, 1)
+        self.WQ = nn.Conv2d(model_dim, nhead * head_dim, 1)
+        self.WK = nn.Conv2d(model_dim, nhead * head_dim, 1)
+        self.WV = nn.Conv2d(model_dim, nhead * head_dim, 1)
+        self.WO = nn.Conv2d(nhead * head_dim, model_dim, 1)
 
         self.drop = nn.Dropout(dropout)
 
         print('NUM_HEAD', nhead, 'DIM_HEAD', head_dim)
-        self.nhid, self.nhead, self.head_dim, self.unfold_size = nhid, nhead, head_dim, 3
+        self.nhid, self.nhead, self.head_dim, self.unfold_size = model_dim, nhead, head_dim, 3
 
     def forward(self, x, ax=None):
         # x: B, H, L, 1, ax : B, H, X, L append features
@@ -172,7 +170,7 @@ class MSA1(nn.Module):
 
 
 class MSA2(nn.Module):
-    def __init__(self, nhid, nhead=10, head_dim=10, dropout=0.1):
+    def __init__(self, nhid, nhead=10, dropout=0.1):
         # Multi-head Self Attention Case 2, a broadcastable query for a sequence key and value
         super(MSA2, self).__init__()
         assert nhid % nhead == 0
@@ -203,3 +201,12 @@ class MSA2(nn.Module):
         alphas = self.drop(F.softmax(pre_a, 3))  # B, N, 1, L
         att = torch.matmul(alphas, v).view(B, -1, 1, 1)  # B, N, 1, h -> B, N*h, 1, 1
         return self.WO(att)
+
+def seq_len_to_byte_mask(seq_lens):
+    # usually seq_lens: LongTensor, batch_size
+    # return value: ByteTensor, batch_size x max_len
+    batch_size = seq_lens.size(0)
+    max_len = seq_lens.max()
+    broadcast_arange = torch.arange(max_len).view(1, -1).repeat(batch_size, 1).to(seq_lens.device)
+    mask = broadcast_arange.float().lt(seq_lens.float().view(-1, 1))
+    return mask
