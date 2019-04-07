@@ -117,11 +117,15 @@ class TransformerEncoder(EncoderBase):
 
         out = emb.transpose(0, 1).contiguous() # [B, L, H]
         words = src[:, :, 0].transpose(0, 1)
+        import pdb;pdb.set_trace()
+
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, L]
         # import pdb;pdb.set_trace()
         # Run the forward pass of every layer of the transformer.
+        import pdb;pdb.set_trace()
+
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)
