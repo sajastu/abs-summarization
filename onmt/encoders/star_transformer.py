@@ -86,7 +86,7 @@ class StarTransformerEncoder(EncoderBase):
         emb = self.embeddings(data)
         data = emb.transpose(0, 1).contiguous() # data: (len, batch, hidden)
         import pdb;pdb.set_trace()
-        words = data[:, :, 0].transpose(0, 1) # words (len, batch)
+        words = data_out[:, :, 0].transpose(0, 1) # words (len, batch)
         import pdb;pdb.set_trace()
 
         w_batch, w_len = words.size()

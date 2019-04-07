@@ -115,7 +115,7 @@ class TransformerEncoder(EncoderBase):
         self._check_args(src, lengths)
         emb = self.embeddings(src)
 
-        out = emb.transpose(0, 1).contiguous() # [L, B, H]
+        out = emb.transpose(0, 1).contiguous() # [B, L, H]
         words = src[:, :, 0].transpose(0, 1)
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
