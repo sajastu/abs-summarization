@@ -44,7 +44,6 @@ class TransformerEncoderLayer(nn.Module):
 
             * outputs ``(batch_size, src_len, model_dim)``
         """
-        import pdb;pdb.set_trace()
         input_norm = self.layer_norm(inputs)
         context, _ = self.self_attn(input_norm, input_norm, input_norm,
                                     mask=mask, type="self")
@@ -109,7 +108,7 @@ class TransformerEncoder(EncoderBase):
 
     def forward(self, src, lengths=None):
         """See :func:`EncoderBase.forward()
-            src: (batch, len, features)
+            src: (len, batch, features)
             out: (len, batch, hidden)
         `"""
         import pdb;pdb.set_trace()
@@ -121,7 +120,7 @@ class TransformerEncoder(EncoderBase):
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, L]
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         # Run the forward pass of every layer of the transformer.
         for layer in self.transformer:
             out = layer(out, mask)
