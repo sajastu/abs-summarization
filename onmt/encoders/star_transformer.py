@@ -80,7 +80,6 @@ class StarTransformerEncoder(EncoderBase):
         def norm_func(f, x):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-        import pdb;pdb.set_trace()
 
         data_out = data # (L, B, F)
         emb = self.embeddings(data)
@@ -119,10 +118,10 @@ class StarTransformerEncoder(EncoderBase):
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
             nodes = nodes.masked_fill_(ex_mask, 0)
 
-        nodes = nodes.view(B, H, L).permute(0, 2, 1).contiguous()
-        import pdb;pdb.set_trace()
+        nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
-        return self.embeddings(data_out), nodes, lengths
+        #out should be L B H
+        return self.embeddings(data_out), nodes.transpose(0, 1).contiguous(), lengths
 
 
 class MSA1(nn.Module):
