@@ -82,18 +82,15 @@ class StarTransformerEncoder(EncoderBase):
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
         import pdb;pdb.set_trace()
 
-        data_out = data
+        data_out = data # (L, B, F)
         emb = self.embeddings(data)
-        data = emb.transpose(0, 1).contiguous() # data: (len, batch, hidden)
-        import pdb;pdb.set_trace()
-        words = data_out[:, :, 0].transpose(0, 1) # words (len, batch)
-        import pdb;pdb.set_trace()
+        data = emb.transpose(0, 1).contiguous() # data: (B, L, H)
+        words = data_out[:, :, 0].transpose(0, 1) # words (B, L)
 
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         # mask = words.data.eq(padding_idx).unsqueeze(1)  # [batch, 1, length]
-        mask = words.data.eq(padding_idx)  # [length, batch]
-        import pdb;pdb.set_trace()
+        mask = words.data.eq(padding_idx)  # [B, L]
 
         # data = data.permute(1, 0, 2) # B L H
         # data = data.type(torch.cuda.FloatTensor)
@@ -101,7 +98,6 @@ class StarTransformerEncoder(EncoderBase):
 
         B, L, H = data.size()  # (length, batch, hidden)
         mask = (mask == 0) # flip the mask for masked_fill_
-        import pdb;pdb.set_trace()
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
 
@@ -124,6 +120,7 @@ class StarTransformerEncoder(EncoderBase):
             nodes = nodes.masked_fill_(ex_mask, 0)
 
         nodes = nodes.view(B, H, L).permute(0, 2, 1).contiguous()
+        import pdb;pdb.set_trace()
         # return self.embedding(data), nodes, relay.view(B, H)
         return self.embeddings(data_out), nodes, lengths
 

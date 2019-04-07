@@ -116,7 +116,7 @@ class TransformerEncoder(EncoderBase):
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous() # [B, L, H]
-        words = src[:, :, 0].transpose(0, 1)
+        words = src[:, :, 0].transpose(0, 1) # [B, L]
         import pdb;pdb.set_trace()
 
         w_batch, w_len = words.size()
