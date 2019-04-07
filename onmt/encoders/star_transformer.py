@@ -175,7 +175,7 @@ class MSA2(nn.Module):
         # Multi-head Self Attention Case 2, a broadcastable query for a sequence key and value
         super(MSA2, self).__init__()
         assert nhid % nhead == 0
-        self.head_dim = nhid // nhead
+        head_dim = nhid // nhead
         import pdb;pdb.set_trace()
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WK = nn.Conv2d(nhid, nhead * head_dim, 1)
