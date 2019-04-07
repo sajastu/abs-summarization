@@ -86,7 +86,7 @@ class StarTransformerEncoder(EncoderBase):
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous() # data: (B, L, H)
-        words = out[:, :, 0].transpose(0, 1) # words (B, L)
+        words = src[:, :, 0].transpose(0, 1) # words (B, L)
 
         # w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
@@ -120,7 +120,7 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return emb, nodes.transpose(0, 1).contiguous(), lengths
+        return emb, torch.cat([nodes.transpose(0, 1), relay.view(B, H)], 0).contiguous(), lengths
 
 
 class MSA1(nn.Module):
