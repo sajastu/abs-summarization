@@ -111,13 +111,11 @@ class TransformerEncoder(EncoderBase):
             src: (len, batch, features)
             out: (len, batch, hidden)
         `"""
-        import pdb;pdb.set_trace()
         self._check_args(src, lengths)
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous() # [B, L, H]
         words = src[:, :, 0].transpose(0, 1) # [B, L]
-        import pdb;pdb.set_trace()
 
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
@@ -129,4 +127,5 @@ class TransformerEncoder(EncoderBase):
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)
+        import pdb;pdb.set_trace()
         return emb, out.transpose(0, 1).contiguous(), lengths
