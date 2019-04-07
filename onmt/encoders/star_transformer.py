@@ -176,7 +176,6 @@ class MSA2(nn.Module):
         super(MSA2, self).__init__()
         assert nhid % nhead == 0
         head_dim = nhid // nhead
-        import pdb;pdb.set_trace()
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WK = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WV = nn.Conv2d(nhid, nhead * head_dim, 1)
