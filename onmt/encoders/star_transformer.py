@@ -119,7 +119,7 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return emb, torch.cat([nodes.transpose(0, 1), relay.view(1, B, H)], 0).contiguous(), lengths
+        return emb, torch.cat([nodes.transpose(0, 1), relay.view(1, B, H)], 2).contiguous(), lengths
 
 
 class MSA1(nn.Module):
