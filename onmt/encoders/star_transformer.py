@@ -57,7 +57,7 @@ class StarTransformerEncoder(EncoderBase):
             [MSA2(d_model, nhead=heads, head_dim=d_ff, dropout=dropout)
              for _ in range(self.iters)])
 
-        if max_relative_positions is not 0:
+        if max_relative_positions != 0:
             self.pos_emb = self.pos_emb = nn.Embedding(max_relative_positions, d_model)
         else:
             self.pos_emb = None
@@ -176,6 +176,7 @@ class MSA2(nn.Module):
         super(MSA2, self).__init__()
         assert nhid % nhead == 0
         self.head_dim = nhid // nhead
+        import pdb;pdb.set_trace()
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WK = nn.Conv2d(nhid, nhead * head_dim, 1)
         self.WV = nn.Conv2d(nhid, nhead * head_dim, 1)
