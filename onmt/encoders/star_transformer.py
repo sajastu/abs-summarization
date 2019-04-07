@@ -101,9 +101,9 @@ class StarTransformerEncoder(EncoderBase):
 
         B, L, H = data.size()  # (length, batch, hidden)
         mask = (mask == 0) # flip the mask for masked_fill_
+        import pdb;pdb.set_trace()
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
-        import pdb;pdb.set_trace()
 
         embs = data.permute(0, 2, 1)[:, :, :, None]  # B H L 1
         if self.pos_emb:
