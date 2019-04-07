@@ -74,31 +74,32 @@ class StarTransformerEncoder(EncoderBase):
             embeddings,
             opt.max_relative_positions)
 
-    def forward(self, data, lengths=None):
+    def forward(self, src, lengths=None):
         """See :func:`EncoderBase.forward()`
             data: LongTensor: (len, batch, features)
         """
         def norm_func(f, x):
             # B, H, L, 1
             return f(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-        self._check_args(data, lengths)
-        # d_out = data # (L, B, F)
-        emb = self.embeddings(data)
-        data = emb.transpose(0, 1).contiguous() # data: (B, L, H)
-        # words = d_out[:, :, 0].transpose(0, 1) # words (B, L)
-        #
+
+        self._check_args(src, lengths)
+        emb = self.embeddings(src)
+
+        out = emb.transpose(0, 1).contiguous() # data: (B, L, H)
+        words = out[:, :, 0].transpose(0, 1) # words (B, L)
+
         # w_batch, w_len = words.size()
-        # padding_idx = self.embeddings.word_padding_idx
-        # mask = words.data.eq(padding_idx)  # [B, L]
+        padding_idx = self.embeddings.word_padding_idx
+        mask = words.data.eq(padding_idx)  # [B, L]
 
-        mask = seq_len_to_byte_mask(lengths)
+        # mask = seq_len_to_byte_mask(lengths)
 
-        B, L, H = data.size()  # (B, L, H)
+        B, L, H = out.size()  # (B, L, H)
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
 
-        embs = data.permute(0, 2, 1)[:, :, :, None]  # B H L 1
+        embs = out.permute(0, 2, 1)[:, :, :, None]  # B H L 1
         if self.pos_emb:
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
@@ -119,7 +120,7 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return emb, nodes.transpose(0, 1).contiguous(), lengths
+        return emb, torch.cat([nodes.transpose(0, 1), relay.view(B, H)], 0).contiguous(), lengths
 
 
 class MSA1(nn.Module):
