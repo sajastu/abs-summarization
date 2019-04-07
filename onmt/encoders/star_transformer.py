@@ -129,7 +129,8 @@ class MSA1(nn.Module):
     def __init__(self, nhid, nhead=10, head_dim=10, dropout=0.1):
         super(MSA1, self).__init__()
         assert nhid % nhead == 0
-        self.head_dim = nhid // nhead
+        head_dim = nhid // nhead
+        import pdb;pdb.set_trace()
         # Multi-head Self Attention Case 1, doing self-attention for small regions
         # Due to the architecture of GPU, using hadamard production and summation are faster than dot production when unfold_size is very small
         self.WQ = nn.Conv2d(nhid, nhead * head_dim, 1)
