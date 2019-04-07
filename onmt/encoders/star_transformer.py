@@ -117,11 +117,10 @@ class StarTransformerEncoder(EncoderBase):
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
             nodes = nodes.masked_fill_(ex_mask, 0)
 
-        import pdb;pdb.set_trace()
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         #out should be L B H
-        return emb, torch.cat([nodes.transpose(0, 1), relay.view(B, H)], 0).contiguous(), lengths
+        return emb, nodes.transpose(0, 1).contiguous(), lengths
 
 
 class MSA1(nn.Module):
