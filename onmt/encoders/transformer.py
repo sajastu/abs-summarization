@@ -47,7 +47,6 @@ class TransformerEncoderLayer(nn.Module):
         input_norm = self.layer_norm(inputs)
         context, _ = self.self_attn(input_norm, input_norm, input_norm,
                                     mask=mask, type="self")
-        import pdb;pdb.set_trace()
         out = self.dropout(context) + inputs
         return self.feed_forward(out)
 
@@ -121,10 +120,10 @@ class TransformerEncoder(EncoderBase):
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, L]
-        import pdb;pdb.set_trace()
         # Run the forward pass of every layer of the transformer.
 
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out) # B L H
+        import pdb;pdb.set_trace()
         return emb, out.transpose(0, 1).contiguous(), lengths

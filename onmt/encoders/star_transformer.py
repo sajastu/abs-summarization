@@ -95,7 +95,6 @@ class StarTransformerEncoder(EncoderBase):
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
-        import pdb;pdb.set_trace()
         embs = out.permute(0, 2, 1)[:, :, :, None]  # B H L 1
 
         if self.pos_emb:
@@ -104,13 +103,12 @@ class StarTransformerEncoder(EncoderBase):
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
             embs = embs + P
 
-        nodes = embs  # H^0 = E
-        relay = embs.mean(2, keepdim=True)  # s^0 = average(E)
+        nodes = embs  # H^0 = E, [B, H, L, 1]
+        relay = embs.mean(2, keepdim=True)  # s^0 = average(E), [B, H, 1, 1]
 
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
 
         r_embs = embs.view(B, H, 1, L)
-        import pdb;pdb.set_trace()
         for i in range(self.iters):
             ax = torch.cat([r_embs, relay.expand(B, H, 1, L)], 2)  # context vector
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
@@ -119,6 +117,7 @@ class StarTransformerEncoder(EncoderBase):
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         # out should be L B H
+        import pdb;pdb.set_trace()
         return emb, nodes.transpose(0, 1).contiguous(), lengths
 
 
@@ -137,7 +136,7 @@ class MSA1(nn.Module):
 
         self.drop = nn.Dropout(dropout)
 
-        print('NUM_HEAD', nhead, 'DIM_HEAD', head_dim)
+        # print('NUM_HEAD', nhead, 'DIM_HEAD', head_dim)
         self.model_dim, self.nhead, self.head_dim, self.unfold_size = model_dim, nhead, head_dim, 3
 
     def forward(self, x, ax=None):
@@ -196,7 +195,7 @@ class MSA2(nn.Module):
         v = v.view(B, nhead, head_dim, L).permute(0, 1, 3, 2)  # B, H, L, 1 -> B, N, L, h
         pre_a = torch.matmul(q, k) / NP.sqrt(head_dim)
         if mask is not None:
-            pre_a = pre_a.masked_fill(mask[:, None, None, :], -float('inf'))
+            pre_a = pre_a.masked_fill(mask[:, None, None, :], -1e18)
         alphas = self.drop(F.softmax(pre_a, 3))  # B, N, 1, L
         att = torch.matmul(alphas, v).view(B, -1, 1, 1)  # B, N, 1, h -> B, N*h, 1, 1
         return self.WO(att)
