@@ -85,12 +85,12 @@ class StarTransformerEncoder(EncoderBase):
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous()  # data: (B, L, H)
-        words = src[:, :, 0].transpose(0, 1)  # words: (B, L)
-
+        # words = src[:, :, 0].transpose(0, 1)  # words: (B, L)
         # w_batch, w_len = words.size()
-        padding_idx = self.embeddings.word_padding_idx
-        mask = words.data.eq(padding_idx).byte()  # [B, L]
+        # padding_idx = self.embeddings.word_padding_idx
+        # mask = words.data.eq(padding_idx).byte()  # [B, L]
 
+        mask = seq_len_to_byte_mask(lengths)
         B, L, H = out.size()  # (B, L, H)
         mask = (mask == 0) # flip the mask for masked _fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
@@ -202,11 +202,11 @@ class MSA2(nn.Module):
         att = torch.matmul(alphas, v).view(B, -1, 1, 1)  # B, N, 1, h -> B, N*h, 1, 1
         return self.WO(att)
 
-# def seq_len_to_byte_mask(seq_lens):
-#     # usually seq_lens: LongTensor, batch_size
-#     # return value: ByteTensor, batch_size x max_len
-#     batch_size = seq_lens.size(0)
-#     max_len = seq_lens.max()
-#     broadcast_arange = torch.arange(max_len).view(1, -1).repeat(batch_size, 1).to(seq_lens.device)
-#     mask = broadcast_arange.float().lt(seq_lens.float().view(-1, 1))
-#     return mask
+def seq_len_to_byte_mask(seq_lens):
+    # usually seq_lens: LongTensor, batch_size
+    # return value: ByteTensor, batch_size x max_len
+    batch_size = seq_lens.size(0)
+    max_len = seq_lens.max()
+    broadcast_arange = torch.arange(max_len).view(1, -1).repeat(batch_size, 1).to(seq_lens.device)
+    mask = broadcast_arange.float().lt(seq_lens.float().view(-1, 1))
+    return mask
