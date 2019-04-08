@@ -114,10 +114,10 @@ class StarTransformerEncoder(EncoderBase):
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
             nodes = nodes.masked_fill_(ex_mask, 0)
+        import pdb;pdb.set_trace()
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         # out should be L B H
-        import pdb;pdb.set_trace()
         return emb, nodes.transpose(0, 1).contiguous(), lengths
 
 
