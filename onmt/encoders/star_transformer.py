@@ -92,7 +92,10 @@ class StarTransformerEncoder(EncoderBase):
 
         mask = seq_len_to_byte_mask(lengths)
         B, L, H = out.size()  # (B, L, H)
+        import pdb;pdb.set_trace()
         mask = (mask == 0) # flip the mask for masked _fill_
+        import pdb;pdb.set_trace()
+
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
         embs = out.permute(0, 2, 1)[:, :, :, None]  # B H L 1
