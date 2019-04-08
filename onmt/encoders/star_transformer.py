@@ -110,8 +110,9 @@ class StarTransformerEncoder(EncoderBase):
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
 
         r_embs = embs.view(B, H, 1, L)
+        import pdb;pdb.set_trace()
         for i in range(self.iters):
-            ax = torch.cat([r_embs, relay.expand(B, H, 1, L)], 2)
+            ax = torch.cat([r_embs, relay.expand(B, H, 1, L)], 2)  # context vector
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
             nodes = nodes.masked_fill_(ex_mask, 0)
