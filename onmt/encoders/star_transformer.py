@@ -104,6 +104,8 @@ class StarTransformerEncoder(EncoderBase):
             embs = embs + P
 
         nodes = embs  # H^0 = E, [B, H, L, 1]
+        import pdb;pdb.set_trace()
+
         relay = embs.mean(2, keepdim=True)  # s^0 = average(E), [B, H, 1, 1]
 
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
@@ -114,7 +116,6 @@ class StarTransformerEncoder(EncoderBase):
             nodes = nodes + F.leaky_relu(self.ring_att[i](norm_func(self.norm[i], nodes), ax=ax))
             relay = F.leaky_relu(self.star_att[i](relay, torch.cat([relay, nodes], 2), smask))
             nodes = nodes.masked_fill_(ex_mask, 0)
-        import pdb;pdb.set_trace()
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
         # out should be L B H
