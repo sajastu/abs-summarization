@@ -95,7 +95,7 @@ class StarTransformerEncoder(EncoderBase):
         mask = (mask == 0) # flip the mask for masked_fill_
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
-
+        import pdb;pdb.set_trace()
         embs = out.permute(0, 2, 1)[:, :, :, None]  # B H L 1
 
         if self.pos_emb:
@@ -137,11 +137,11 @@ class MSA1(nn.Module):
         self.drop = nn.Dropout(dropout)
 
         print('NUM_HEAD', nhead, 'DIM_HEAD', head_dim)
-        self.nhid, self.nhead, self.head_dim, self.unfold_size = model_dim, nhead, head_dim, 3
+        self.model_dim, self.nhead, self.head_dim, self.unfold_size = model_dim, nhead, head_dim, 3
 
     def forward(self, x, ax=None):
         # x: B, H, L, 1, ax : B, H, X, L append features
-        nhid, nhead, head_dim, unfold_size = self.nhid, self.nhead, self.head_dim, self.unfold_size
+        model_dim, nhead, head_dim, unfold_size = self.model_dim, self.nhead, self.head_dim, self.unfold_size
         B, H, L, _ = x.shape
 
         q, k, v = self.WQ(x), self.WK(x), self.WV(x)  # x: (B,H,L,1)
