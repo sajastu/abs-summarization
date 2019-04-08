@@ -47,7 +47,6 @@ class StarTransformerEncoder(EncoderBase):
 
         super(StarTransformerEncoder, self).__init__()
         self.iters = num_layers
-        # self.fc1 = nn.Linear(input_size, d_model)
         self.embeddings = embeddings
         self.norm = nn.ModuleList([nn.LayerNorm(d_model, eps=1e-6) for _ in range(self.iters)])
         self.ring_att = nn.ModuleList(
@@ -76,7 +75,7 @@ class StarTransformerEncoder(EncoderBase):
 
     def forward(self, src, lengths=None):
         """See :func:`EncoderBase.forward()`
-            data: LongTensor: (len, batch, features)
+            src: LongTensor: (len, batch, features)
         """
         def norm_func(f, x):
             # B, H, L, 1
@@ -85,8 +84,8 @@ class StarTransformerEncoder(EncoderBase):
         self._check_args(src, lengths)
         emb = self.embeddings(src)
 
-        out = emb.transpose(0, 1).contiguous() # data: (B, L, H)
-        words = src[:, :, 0].transpose(0, 1) # words (B, L)
+        out = emb.transpose(0, 1).contiguous()  # data: (B, L, H)
+        words = src[:, :, 0].transpose(0, 1)  # words: (B, L)
 
         # w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
@@ -98,13 +97,15 @@ class StarTransformerEncoder(EncoderBase):
 
 
         embs = out.permute(0, 2, 1)[:, :, :, None]  # B H L 1
+
         if self.pos_emb:
+            print('Hey! I\'m in pos emb!!!')
             P = self.pos_emb(torch.arange(L, dtype=torch.long, device=embs.device) \
                              .view(1, L)).permute(0, 2, 1).contiguous()[:, :, :, None]  # 1 H L 1
             embs = embs + P
 
-        nodes = embs  # nodes denote the hidden states of source input
-        relay = embs.mean(2, keepdim=True)
+        nodes = embs  # H^0 = E
+        relay = embs.mean(2, keepdim=True)  # s^0 = average(E)
 
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
 
@@ -116,7 +117,7 @@ class StarTransformerEncoder(EncoderBase):
             nodes = nodes.masked_fill_(ex_mask, 0)
         nodes = nodes.view(B, H, L).permute(0, 2, 1) # B L H
         # return self.embedding(data), nodes, relay.view(B, H)
-        #out should be L B H
+        # out should be L B H
         return emb, nodes.transpose(0, 1).contiguous(), lengths
 
 

@@ -120,6 +120,7 @@ class TransformerEncoder(EncoderBase):
         w_batch, w_len = words.size()
         padding_idx = self.embeddings.word_padding_idx
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, L]
+        import pdb;pdb.set_trace()
         # Run the forward pass of every layer of the transformer.
 
         for layer in self.transformer:
