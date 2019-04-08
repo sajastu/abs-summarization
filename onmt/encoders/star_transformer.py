@@ -92,9 +92,7 @@ class StarTransformerEncoder(EncoderBase):
 
         mask = seq_len_to_byte_mask(lengths)
         B, L, H = out.size()  # (B, L, H)
-        import pdb;pdb.set_trace()
         mask = (mask == 0) # flip the mask for masked _fill_
-        import pdb;pdb.set_trace()
 
         smask = torch.cat([torch.zeros(B, 1, ).byte().to(mask), mask], 1)
 
@@ -111,7 +109,7 @@ class StarTransformerEncoder(EncoderBase):
         relay = embs.mean(2, keepdim=True)  # s^0 = average(E), [B, H, 1, 1]
 
         ex_mask = mask[:, None, :, None].expand(B, H, L, 1)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         r_embs = embs.view(B, H, 1, L)
         for i in range(self.iters):
