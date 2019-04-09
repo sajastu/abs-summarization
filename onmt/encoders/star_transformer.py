@@ -73,9 +73,9 @@ class StarTransformerEncoder(EncoderBase):
             embeddings,
             opt.max_relative_positions)
 
-    def forward(self, src, lengths=None):
-        """See :func:`EncoderBase.forward()`
-            src: LongTensor: (len, batch, features)
+    # def forward(self, src, lengths=None):
+    #     """See :func:`EncoderBase.forward()`
+    #         src: LongTensor: (len, batch, features)
         """
         def norm_func(f, x):
             # B, H, L, 1

@@ -125,5 +125,5 @@ class TransformerEncoder(EncoderBase):
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out) # B L H
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         return emb, out.transpose(0, 1).contiguous(), lengths
